@@ -76,7 +76,31 @@ TELEGRAM_BOT_USERNAME=your_bot_username
 docker-compose up -d
 ```
 
-### Локальный запуск
+### Локальный запуск для разработки (рекомендуется)
+
+Для разработки и отладки рекомендуется запускать приложение локально, используя dockerized yt-dlp сервис:
+
+1. Запустите yt-dlp сервис в Docker:
+```bash
+docker-compose -f docker-compose.dev.yml up -d
+```
+
+2. Создайте `.env.dev` файл:
+```bash
+cp .env.dev.example .env.dev
+# Отредактируйте и укажите ваш токен
+```
+
+3. Запустите приложение локально:
+```bash
+export $(cat .env.dev | xargs) && ./gradlew bootRun
+```
+
+Подробнее см. [DEVELOPMENT.md](DEVELOPMENT.md)
+
+### Локальный запуск с локальным yt-dlp
+
+Если вы предпочитаете использовать локально установленный yt-dlp:
 
 1. Установите yt-dlp:
 ```bash
@@ -93,6 +117,7 @@ pip3 install yt-dlp
 ```bash
 export TELEGRAM_BOT_TOKEN=your_bot_token_here
 export TELEGRAM_BOT_USERNAME=your_bot_username
+export YTDLP_MODE=local
 export YTDLP_BIN=/usr/local/bin/yt-dlp
 export DOWNLOAD_DIR=/tmp/downloads
 ```
@@ -111,7 +136,9 @@ export DOWNLOAD_DIR=/tmp/downloads
 |-----------|----------|----------------------|
 | `TELEGRAM_BOT_TOKEN` | Токен Telegram бота (обязательно) | - |
 | `TELEGRAM_BOT_USERNAME` | Имя пользователя бота | `downloader_bot` |
-| `YTDLP_BIN` | Путь к исполняемому файлу yt-dlp | `/usr/local/bin/yt-dlp` |
+| `YTDLP_MODE` | Режим работы yt-dlp: `local` или `http` | `local` |
+| `YTDLP_BIN` | Путь к исполняемому файлу yt-dlp (для `local` режима) | `/usr/local/bin/yt-dlp` |
+| `YTDLP_SERVICE_URL` | URL сервиса yt-dlp (для `http` режима) | `http://localhost:8090` |
 | `DOWNLOAD_DIR` | Директория для скачанных файлов | `/tmp/downloads` |
 | `CACHE_TTL_HOURS` | Время жизни кэша в часах | `24` |
 | `SIZE_LIMIT_MB` | Максимальный размер файла для прямой отправки (МБ) | `50` |
