@@ -7,13 +7,30 @@ services:
     environment:
       - TELEGRAM_BOT_TOKEN=${TELEGRAM_BOT_TOKEN}
       - TELEGRAM_BOT_USERNAME=${TELEGRAM_BOT_USERNAME:-downloader_bot}
-      - YTDLP_BIN=/usr/bin/yt-dlp
-      - DOWNLOAD_DIR=/tmp/downloads
+      - YTDLP_BIN=/usr/local/bin/yt-dlp
+      - DOWNLOAD_DIR=/app/downloads
       - CACHE_TTL_HOURS=24
       - SIZE_LIMIT_MB=50
     volumes:
-      - downloads:/tmp/downloads
+      # Внешнее файловое хранилище для загруженных файлов
+      - ./downloads:/app/downloads
+      # Можно также использовать именованный том:
+      # - downloads:/app/downloads
+    depends_on:
+      - ytdlp
     restart: unless-stopped
 
+  ytdlp:
+    build:
+      context: .
+      dockerfile: Dockerfile.ytdlp
+    container_name: ytdlp-service
+    volumes:
+      # Общая директория с основным сервисом для загруженных файлов
+      - ./downloads:/downloads
+    command: ["--version"]
+    restart: "no"
+
 volumes:
+  # Именованный том для загрузок (можно использовать вместо ./downloads)
   downloads:

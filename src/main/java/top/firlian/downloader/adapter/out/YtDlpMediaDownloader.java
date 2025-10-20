@@ -69,7 +69,7 @@ public class YtDlpMediaDownloader implements MediaDownloader {
                     return downloadSingleItem(url, metadata, 0);
                 }
             } catch (Exception e) {
-                log.error("Error downloading from URL: {}", url, e);
+                log.error("Ошибка загрузки с URL: {}", url, e);
                 // Проверяем специфичные ошибки доступа к контенту
                 if (e.getMessage().contains("Private") || e.getMessage().contains("unavailable")) {
                     throw new ContentUnavailableException("Контент недоступен", e);
@@ -89,7 +89,7 @@ public class YtDlpMediaDownloader implements MediaDownloader {
                 JsonNode metadata = getMetadata(url);
                 return downloadSingleItem(url, metadata, itemIndex);
             } catch (Exception e) {
-                log.error("Error downloading item {} from URL: {}", itemIndex, url, e);
+                log.error("Ошибка загрузки элемента {} с URL: {}", itemIndex, url, e);
                 throw new DownloadException("Ошибка загрузки. Попробуйте позже", e);
             }
         });
@@ -124,8 +124,8 @@ public class YtDlpMediaDownloader implements MediaDownloader {
 
         int exitCode = process.waitFor();
         if (exitCode != 0) {
-            log.error("yt-dlp metadata extraction failed with exit code: {}, output: {}", exitCode, output);
-            throw new DownloadException("Failed to extract metadata");
+            log.error("Ошибка извлечения метаданных yt-dlp с кодом: {}, вывод: {}", exitCode, output);
+            throw new DownloadException("Не удалось извлечь метаданные");
         }
 
         return objectMapper.readTree(output.toString());
@@ -204,7 +204,7 @@ public class YtDlpMediaDownloader implements MediaDownloader {
             try (BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()))) {
                 String line;
                 while ((line = reader.readLine()) != null) {
-                    log.debug("yt-dlp output: {}", line);
+                    log.debug("Вывод yt-dlp: {}", line);
                     output.append(line).append("\n");
                     
                     // Извлекаем путь к файлу из вывода yt-dlp
@@ -219,8 +219,8 @@ public class YtDlpMediaDownloader implements MediaDownloader {
 
             int exitCode = process.waitFor();
             if (exitCode != 0) {
-                log.error("yt-dlp download failed with exit code: {}, output: {}", exitCode, output);
-                throw new DownloadException("Download failed");
+                log.error("Ошибка загрузки yt-dlp с кодом: {}, вывод: {}", exitCode, output);
+                throw new DownloadException("Загрузка не удалась");
             }
 
             // Если не удалось извлечь путь из вывода, ищем последний измененный файл
@@ -240,13 +240,13 @@ public class YtDlpMediaDownloader implements MediaDownloader {
             }
 
             if (downloadedFile == null) {
-                throw new DownloadException("Could not determine downloaded file path");
+                throw new DownloadException("Не удалось определить путь к загруженному файлу");
             }
 
             File file = new File(downloadedFile);
             long fileSize = file.length();
 
-            log.info("Successfully downloaded file: {}, size: {} bytes", downloadedFile, fileSize);
+            log.info("Файл успешно загружен: {}, размер: {} байт", downloadedFile, fileSize);
 
             return MediaContent.builder()
                     .url(url)
@@ -258,8 +258,8 @@ public class YtDlpMediaDownloader implements MediaDownloader {
                     .build();
 
         } catch (IOException | InterruptedException e) {
-            log.error("Error during download", e);
-            throw new DownloadException("Download failed", e);
+            log.error("Ошибка во время загрузки", e);
+            throw new DownloadException("Загрузка не удалась", e);
         }
     }
 

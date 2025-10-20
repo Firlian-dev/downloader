@@ -24,7 +24,7 @@ public class CacheEvictionScheduler {
      */
     @Scheduled(fixedRateString = "${downloader.cache-eviction-interval-ms:3600000}")
     public void evictExpiredCache() {
-        log.info("Running scheduled cache eviction");
+        log.info("Запуск плановой очистки кэша");
         cacheRepository.evictExpired();
     }
 }

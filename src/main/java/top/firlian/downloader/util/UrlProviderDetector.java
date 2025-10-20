@@ -45,21 +45,21 @@ public class UrlProviderDetector implements ProviderDetector {
         String normalizedUrl = url.trim().toLowerCase();
 
         if (YOUTUBE_PATTERN.matcher(normalizedUrl).matches()) {
-            log.debug("Detected YouTube provider for URL: {}", url);
+            log.debug("Определен провайдер YouTube для URL: {}", url);
             return Provider.YOUTUBE;
         }
 
         if (VK_PATTERN.matcher(normalizedUrl).matches()) {
-            log.debug("Detected VK provider for URL: {}", url);
+            log.debug("Определен провайдер VK для URL: {}", url);
             return Provider.VK;
         }
 
         if (INSTAGRAM_PATTERN.matcher(normalizedUrl).matches()) {
-            log.debug("Detected Instagram provider for URL: {}", url);
+            log.debug("Определен провайдер Instagram для URL: {}", url);
             return Provider.INSTAGRAM;
         }
 
-        log.warn("Unknown provider for URL: {}", url);
+        log.warn("Неизвестный провайдер для URL: {}", url);
         return Provider.UNKNOWN;
     }
 }

@@ -40,26 +40,26 @@ public class DownloadService {
      * @return Mono с загруженным медиа контентом
      */
     public Mono<MediaContent> processUrl(String url, Long chatId) {
-        log.info("Processing URL: {} for chat: {}", url, chatId);
+        log.info("Обработка URL: {} для чата: {}", url, chatId);
 
         // Сначала проверяем кэш - если контент уже загружен, возвращаем его
         var cachedContent = cacheRepository.get(url);
         if (cachedContent.isPresent()) {
-            log.info("Found cached content for URL: {}", url);
+            log.info("Найден кэшированный контент для URL: {}", url);
             return Mono.just(cachedContent.get());
         }
 
         // Определяем провайдера (YouTube, VK, Instagram и т.д.)
         Provider provider = providerDetector.detectProvider(url);
         if (provider == Provider.UNKNOWN) {
-            log.error("Unsupported provider for URL: {}", url);
+            log.error("Неподдерживаемый провайдер для URL: {}", url);
             throw new UnsupportedProviderException("Источник не поддерживается");
         }
 
         // Проверяем, не выполняется ли уже загрузка этого URL
         var existingTask = taskQueue.getTask(url);
         if (existingTask.isPresent() && existingTask.get().getStatus() == TaskStatus.DOWNLOADING) {
-            log.info("Task already in progress for URL: {}", url);
+            log.info("Задача уже выполняется для URL: {}", url);
             return Mono.error(new DownloadException("Загрузка уже выполняется"));
         }
 
@@ -72,20 +72,20 @@ public class DownloadService {
                 .build();
 
         if (!taskQueue.addTask(task)) {
-            log.warn("Failed to add task for URL: {}", url);
+            log.warn("Не удалось добавить задачу для URL: {}", url);
         }
 
         // Выполняем загрузку и обрабатываем результат
         return mediaDownloader.download(url)
                 .doOnNext(content -> {
-                    log.info("Downloaded content from URL: {}, size: {} bytes", url, content.getSizeBytes());
+                    log.info("Загружен контент с URL: {}, размер: {} байт", url, content.getSizeBytes());
                     // Сохраняем в кэш для повторного использования
                     cacheRepository.put(url, content);
                     // Отмечаем задачу как завершенную
                     taskQueue.completeTask(url);
                 })
                 .doOnError(error -> {
-                    log.error("Failed to download from URL: {}", url, error);
+                    log.error("Ошибка загрузки с URL: {}", url, error);
                     // Отмечаем задачу как проваленную с сообщением об ошибке
                     taskQueue.failTask(url, error.getMessage());
                 })
@@ -101,7 +101,7 @@ public class DownloadService {
      * @return Mono с загруженным элементом
      */
     public Mono<MediaContent> processUrlWithIndex(String url, int itemIndex, Long chatId) {
-        log.info("Processing URL: {} with item index: {} for chat: {}", url, itemIndex, chatId);
+        log.info("Обработка URL: {} с индексом элемента: {} для чата: {}", url, itemIndex, chatId);
 
         Provider provider = providerDetector.detectProvider(url);
         if (provider == Provider.UNKNOWN) {
@@ -110,7 +110,7 @@ public class DownloadService {
 
         return mediaDownloader.downloadSpecificItem(url, itemIndex)
                 .doOnNext(content -> {
-                    log.info("Downloaded item {} from URL: {}", itemIndex, url);
+                    log.info("Загружен элемент {} с URL: {}", itemIndex, url);
                 })
                 .onErrorMap(this::mapError);
     }

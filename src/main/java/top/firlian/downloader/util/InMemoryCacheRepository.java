@@ -60,7 +60,7 @@ public class InMemoryCacheRepository implements CacheRepository {
     @Override
     public void put(String url, MediaContent content) {
         cache.put(url, new CacheEntry(content, Instant.now().toEpochMilli()));
-        log.debug("Cached content for URL: {}", url);
+        log.debug("Контент кэширован для URL: {}", url);
     }
 
     /**
@@ -73,7 +73,7 @@ public class InMemoryCacheRepository implements CacheRepository {
         cache.entrySet().removeIf(entry -> 
             now - entry.getValue().timestamp > cacheTtlMillis
         );
-        log.info("Evicted expired cache entries");
+        log.info("Удалены устаревшие записи кэша");
     }
 
     /**

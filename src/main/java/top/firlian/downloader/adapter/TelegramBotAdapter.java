@@ -116,7 +116,7 @@ public class TelegramBotAdapter extends TelegramLongPollingBot {
      * @param url URL для загрузки
      */
     private void handleUrlMessage(Long chatId, String url) {
-        log.info("Received URL: {} from chat: {}", url, chatId);
+        log.info("Получен URL: {} от чата: {}", url, chatId);
         
         sendTextMessage(chatId, "Начинаю загрузку...");
 
@@ -142,7 +142,7 @@ public class TelegramBotAdapter extends TelegramLongPollingBot {
                 String url = parts[1];
                 int itemIndex = Integer.parseInt(parts[2]);
                 
-                log.info("User selected item {} for URL: {}", itemIndex, url);
+                log.info("Пользователь выбрал элемент {} для URL: {}", itemIndex, url);
                 sendTextMessage(chatId, "Загружаю выбранный элемент...");
                 
                 // Загружаем выбранный элемент
@@ -176,14 +176,14 @@ public class TelegramBotAdapter extends TelegramLongPollingBot {
                         "Файл слишком большой для прямой отправки (" + 
                         formatFileSize(content.getSizeBytes()) + ").\n\n" +
                         "Путь к файлу: " + content.getFilePath());
-                log.info("File too large, sent path instead: {}", content.getFilePath());
+                log.info("Файл слишком большой, отправлен путь: {}", content.getFilePath());
             } else {
                 // Отправляем файл напрямую
                 sendMediaFile(chatId, content);
-                log.info("Sent file to chat: {}, path: {}", chatId, content.getFilePath());
+                log.info("Файл отправлен в чат: {}, путь: {}", chatId, content.getFilePath());
             }
         } catch (Exception e) {
-            log.error("Error handling downloaded content", e);
+            log.error("Ошибка обработки загруженного контента", e);
             sendTextMessage(chatId, "Ошибка при отправке файла.");
         }
     }
@@ -207,7 +207,7 @@ public class TelegramBotAdapter extends TelegramLongPollingBot {
             errorMessage = "Ошибка загрузки. Попробуйте позже";
         }
         
-        log.error("Download error for chat {}: {}", chatId, errorMessage, error);
+        log.error("Ошибка загрузки для чата {}: {}", chatId, errorMessage, error);
         sendTextMessage(chatId, errorMessage);
     }
 
@@ -244,7 +244,7 @@ public class TelegramBotAdapter extends TelegramLongPollingBot {
         try {
             execute(message);
         } catch (TelegramApiException e) {
-            log.error("Error sending selection keyboard", e);
+            log.error("Ошибка отправки клавиатуры выбора", e);
         }
     }
 
@@ -287,7 +287,7 @@ public class TelegramBotAdapter extends TelegramLongPollingBot {
                 }
             }
         } catch (TelegramApiException e) {
-            log.error("Error sending media file", e);
+            log.error("Ошибка отправки медиа файла", e);
             sendTextMessage(chatId, "Ошибка при отправке файла. Путь: " + content.getFilePath());
         }
     }
@@ -306,7 +306,7 @@ public class TelegramBotAdapter extends TelegramLongPollingBot {
         try {
             execute(message);
         } catch (TelegramApiException e) {
-            log.error("Error sending text message", e);
+            log.error("Ошибка отправки текстового сообщения", e);
         }
     }
 
