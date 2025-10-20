@@ -1,0 +1,11 @@
+FROM python:3.11-alpine
+
+# Установка yt-dlp и ffmpeg
+RUN apk add --no-cache ffmpeg && \
+    pip3 install --no-cache-dir yt-dlp
+
+# Создание рабочей директории
+WORKDIR /downloads
+
+# Точка входа для выполнения команд yt-dlp
+ENTRYPOINT ["yt-dlp"]
