@@ -1,0 +1,19 @@
+version: '3.8'
+
+services:
+  downloader:
+    build: .
+    container_name: telegram-downloader-bot
+    environment:
+      - TELEGRAM_BOT_TOKEN=${TELEGRAM_BOT_TOKEN}
+      - TELEGRAM_BOT_USERNAME=${TELEGRAM_BOT_USERNAME:-downloader_bot}
+      - YTDLP_BIN=/usr/bin/yt-dlp
+      - DOWNLOAD_DIR=/tmp/downloads
+      - CACHE_TTL_HOURS=24
+      - SIZE_LIMIT_MB=50
+    volumes:
+      - downloads:/tmp/downloads
+    restart: unless-stopped
+
+volumes:
+  downloads:

@@ -1,0 +1,20 @@
+spring:
+  application:
+    name: downloader
+
+telegram:
+  bot:
+    token: ${TELEGRAM_BOT_TOKEN:}
+    username: ${TELEGRAM_BOT_USERNAME:downloader_bot}
+
+downloader:
+  ytdlp:
+    bin: ${YTDLP_BIN:/usr/local/bin/yt-dlp}
+  download-dir: ${DOWNLOAD_DIR:/tmp/downloads}
+  cache-ttl-hours: ${CACHE_TTL_HOURS:24}
+  size-limit-mb: ${SIZE_LIMIT_MB:50}
+
+logging:
+  level:
+    top.firlian.downloader: DEBUG
+    org.telegram.telegrambots: INFO
