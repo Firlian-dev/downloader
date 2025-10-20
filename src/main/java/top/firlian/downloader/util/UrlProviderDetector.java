@@ -8,29 +8,40 @@ import top.firlian.downloader.domain.port.ProviderDetector;
 
 import java.util.regex.Pattern;
 
+/**
+ * Реализация детектора провайдера медиа контента на основе URL.
+ * Использует регулярные выражения для определения источника контента.
+ */
 @Slf4j
 @Component
 @RequiredArgsConstructor
 public class UrlProviderDetector implements ProviderDetector {
 
+    /** Паттерн для распознавания YouTube URL */
     private static final Pattern YOUTUBE_PATTERN = Pattern.compile(
             "(https?://)?(www\\.)?(youtube\\.com|youtu\\.be|youtube\\.com/shorts).*"
     );
 
+    /** Паттерн для распознавания VK URL */
     private static final Pattern VK_PATTERN = Pattern.compile(
             "(https?://)?(www\\.)?(vk\\.com|vk\\.ru).*"
     );
 
+    /** Паттерн для распознавания Instagram URL */
     private static final Pattern INSTAGRAM_PATTERN = Pattern.compile(
             "(https?://)?(www\\.)?(instagram\\.com|instagr\\.am).*"
     );
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public Provider detectProvider(String url) {
         if (url == null || url.isBlank()) {
             return Provider.UNKNOWN;
         }
 
+        // Нормализуем URL для корректного сравнения
         String normalizedUrl = url.trim().toLowerCase();
 
         if (YOUTUBE_PATTERN.matcher(normalizedUrl).matches()) {

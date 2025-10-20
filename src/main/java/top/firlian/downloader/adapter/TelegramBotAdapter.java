@@ -24,14 +24,29 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Адаптер Telegram бота для загрузки медиа контента.
+ * Обрабатывает входящие сообщения от пользователей, координирует загрузку
+ * медиа файлов и отправляет результаты обратно в Telegram.
+ */
 @Slf4j
 @Component
 public class TelegramBotAdapter extends TelegramLongPollingBot {
 
     private final DownloadService downloadService;
     private final String botUsername;
+    
+    /** Максимальный размер файла для прямой отправки в Telegram (в байтах) */
     private final long sizeLimitBytes;
 
+    /**
+     * Конструктор адаптера Telegram бота.
+     *
+     * @param botToken токен бота, полученный от BotFather
+     * @param botUsername имя пользователя бота
+     * @param sizeLimitMb лимит размера файла в МБ для прямой отправки (по умолчанию 50)
+     * @param downloadService сервис для обработки загрузки медиа
+     */
     public TelegramBotAdapter(
             @Value("${telegram.bot.token}") String botToken,
             @Value("${telegram.bot.username}") String botUsername,
@@ -43,11 +58,20 @@ public class TelegramBotAdapter extends TelegramLongPollingBot {
         this.sizeLimitBytes = sizeLimitMb * 1024L * 1024L;
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public String getBotUsername() {
         return botUsername;
     }
 
+    /**
+     * Обрабатывает входящие обновления от Telegram.
+     * Поддерживает текстовые сообщения и callback запросы от inline кнопок.
+     *
+     * @param update обновление от Telegram API
+     */
     @Override
     public void onUpdateReceived(Update update) {
         if (update.hasMessage() && update.getMessage().hasText()) {
@@ -68,6 +92,12 @@ public class TelegramBotAdapter extends TelegramLongPollingBot {
         }
     }
 
+    /**
+     * Обрабатывает команду /start.
+     * Отправляет приветственное сообщение с инструкциями по использованию.
+     *
+     * @param chatId ID чата для отправки сообщения
+     */
     private void handleStartCommand(Long chatId) {
         String welcomeMessage = "Привет! Я бот для скачивания медиа.\n\n" +
                 "Отправьте мне ссылку на:\n" +
@@ -78,11 +108,19 @@ public class TelegramBotAdapter extends TelegramLongPollingBot {
         sendTextMessage(chatId, welcomeMessage);
     }
 
+    /**
+     * Обрабатывает URL сообщение от пользователя.
+     * Инициирует процесс загрузки медиа контента.
+     *
+     * @param chatId ID чата
+     * @param url URL для загрузки
+     */
     private void handleUrlMessage(Long chatId, String url) {
         log.info("Received URL: {} from chat: {}", url, chatId);
         
         sendTextMessage(chatId, "Начинаю загрузку...");
 
+        // Запускаем асинхронную загрузку с обработкой результата
         downloadService.processUrl(url, chatId)
                 .subscribe(
                         content -> handleDownloadedContent(chatId, content),
@@ -90,6 +128,13 @@ public class TelegramBotAdapter extends TelegramLongPollingBot {
                 );
     }
 
+    /**
+     * Обрабатывает callback запросы от inline кнопок.
+     * Используется для выбора конкретного элемента из плейлиста/карусели.
+     *
+     * @param chatId ID чата
+     * @param callbackData данные callback в формате "item:URL:INDEX"
+     */
     private void handleCallbackQuery(Long chatId, String callbackData) {
         if (callbackData.startsWith("item:")) {
             String[] parts = callbackData.split(":");
@@ -100,6 +145,7 @@ public class TelegramBotAdapter extends TelegramLongPollingBot {
                 log.info("User selected item {} for URL: {}", itemIndex, url);
                 sendTextMessage(chatId, "Загружаю выбранный элемент...");
                 
+                // Загружаем выбранный элемент
                 downloadService.processUrlWithIndex(url, itemIndex, chatId)
                         .subscribe(
                                 content -> handleDownloadedContent(chatId, content),
@@ -109,20 +155,30 @@ public class TelegramBotAdapter extends TelegramLongPollingBot {
         }
     }
 
+    /**
+     * Обрабатывает успешно загруженный контент.
+     * В зависимости от типа контента и его размера:
+     * - Отправляет inline клавиатуру для выбора элемента (если несколько элементов)
+     * - Отправляет путь к файлу (если файл слишком большой)
+     * - Отправляет файл напрямую (в остальных случаях)
+     *
+     * @param chatId ID чата для отправки результата
+     * @param content загруженный медиа контент
+     */
     private void handleDownloadedContent(Long chatId, MediaContent content) {
         try {
             if (content.getItems() != null && !content.getItems().isEmpty()) {
-                // Multiple items - show selection keyboard
+                // Несколько элементов - показываем клавиатуру выбора
                 sendMediaSelectionKeyboard(chatId, content);
             } else if (content.getSizeBytes() > sizeLimitBytes) {
-                // File too large - send URL
+                // Файл слишком большой - отправляем только путь
                 sendTextMessage(chatId, 
                         "Файл слишком большой для прямой отправки (" + 
                         formatFileSize(content.getSizeBytes()) + ").\n\n" +
                         "Путь к файлу: " + content.getFilePath());
                 log.info("File too large, sent path instead: {}", content.getFilePath());
             } else {
-                // Send file directly
+                // Отправляем файл напрямую
                 sendMediaFile(chatId, content);
                 log.info("Sent file to chat: {}, path: {}", chatId, content.getFilePath());
             }
@@ -132,6 +188,13 @@ public class TelegramBotAdapter extends TelegramLongPollingBot {
         }
     }
 
+    /**
+     * Обрабатывает ошибки загрузки.
+     * Преобразует технические исключения в понятные пользователю сообщения.
+     *
+     * @param chatId ID чата для отправки сообщения об ошибке
+     * @param error возникшая ошибка
+     */
     private void handleDownloadError(Long chatId, Throwable error) {
         String errorMessage;
         if (error instanceof ContentUnavailableException) {
@@ -148,6 +211,13 @@ public class TelegramBotAdapter extends TelegramLongPollingBot {
         sendTextMessage(chatId, errorMessage);
     }
 
+    /**
+     * Отправляет inline клавиатуру для выбора элемента из плейлиста/карусели.
+     * Отображает до 10 первых элементов с их названиями.
+     *
+     * @param chatId ID чата
+     * @param content медиа контент с несколькими элементами
+     */
     private void sendMediaSelectionKeyboard(Long chatId, MediaContent content) {
         SendMessage message = new SendMessage();
         message.setChatId(chatId.toString());
@@ -156,6 +226,7 @@ public class TelegramBotAdapter extends TelegramLongPollingBot {
         InlineKeyboardMarkup markup = new InlineKeyboardMarkup();
         List<List<InlineKeyboardButton>> keyboard = new ArrayList<>();
 
+        // Создаем кнопки для каждого элемента (максимум 10)
         for (int i = 0; i < Math.min(content.getItems().size(), 10); i++) {
             var item = content.getItems().get(i);
             InlineKeyboardButton button = new InlineKeyboardButton();
@@ -177,6 +248,16 @@ public class TelegramBotAdapter extends TelegramLongPollingBot {
         }
     }
 
+    /**
+     * Отправляет медиа файл в чат.
+     * Выбирает подходящий тип отправки в зависимости от типа медиа:
+     * - SendVideo для видео
+     * - SendPhoto для фото
+     * - SendDocument для остальных типов
+     *
+     * @param chatId ID чата
+     * @param content медиа контент для отправки
+     */
     private void sendMediaFile(Long chatId, MediaContent content) {
         File file = new File(content.getFilePath());
         InputFile inputFile = new InputFile(file);
@@ -211,6 +292,12 @@ public class TelegramBotAdapter extends TelegramLongPollingBot {
         }
     }
 
+    /**
+     * Отправляет текстовое сообщение в чат.
+     *
+     * @param chatId ID чата
+     * @param text текст сообщения
+     */
     private void sendTextMessage(Long chatId, String text) {
         SendMessage message = new SendMessage();
         message.setChatId(chatId.toString());
@@ -223,10 +310,23 @@ public class TelegramBotAdapter extends TelegramLongPollingBot {
         }
     }
 
+    /**
+     * Проверяет, является ли текст URL.
+     *
+     * @param text текст для проверки
+     * @return true если текст начинается с http:// или https://
+     */
     private boolean isUrl(String text) {
         return text != null && (text.startsWith("http://") || text.startsWith("https://"));
     }
 
+    /**
+     * Форматирует размер файла в человекочитаемый формат.
+     * Преобразует байты в B, KB, MB или GB в зависимости от размера.
+     *
+     * @param bytes размер в байтах
+     * @return отформатированная строка с размером файла
+     */
     private String formatFileSize(long bytes) {
         if (bytes < 1024) {
             return bytes + " B";
