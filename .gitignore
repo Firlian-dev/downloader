@@ -42,6 +42,7 @@ bin/
 
 # Environment
 .env
+.env.dev
 
 # Downloads
 /tmp/downloads/
