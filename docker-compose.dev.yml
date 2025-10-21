@@ -1,0 +1,25 @@
+version: '3.8'
+
+# Development configuration - run only yt-dlp service in Docker
+# Main application runs locally for easier debugging and development
+
+services:
+  ytdlp-service:
+    build:
+      context: ./ytdlp-service
+      dockerfile: Dockerfile
+    container_name: ytdlp-service-dev
+    ports:
+      - "8090:8090"
+    volumes:
+      # Shared directory for downloads between host and container
+      - ./downloads:/downloads
+    environment:
+      - DOWNLOAD_DIR=/downloads
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8090/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 5s

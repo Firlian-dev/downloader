@@ -26,6 +26,28 @@ docker-compose logs -f
 
 ## Локальный запуск для разработки
 
+### Вариант 1: С dockerized yt-dlp (рекомендуется)
+
+1. Запустите yt-dlp сервис:
+```bash
+docker-compose -f docker-compose.dev.yml up -d
+```
+
+2. Настройте переменные окружения:
+```bash
+cp .env.dev.example .env.dev
+# Отредактируйте .env.dev и укажите токен бота
+```
+
+3. Запустите приложение:
+```bash
+export $(cat .env.dev | xargs) && ./gradlew bootRun
+```
+
+Подробнее см. [DEVELOPMENT.md](DEVELOPMENT.md)
+
+### Вариант 2: С локальным yt-dlp
+
 1. Установите зависимости:
 ```bash
 # Java 17+
@@ -41,6 +63,7 @@ brew install yt-dlp
 ```bash
 export TELEGRAM_BOT_TOKEN=your_token_here
 export TELEGRAM_BOT_USERNAME=your_bot_username
+export YTDLP_MODE=local
 export YTDLP_BIN=/usr/local/bin/yt-dlp
 export DOWNLOAD_DIR=/tmp/downloads
 ```
