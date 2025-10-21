@@ -14,6 +14,7 @@ import static org.junit.jupiter.api.Assertions.*;
  * Тесты для MediaDownloaderConfig для проверки корректного выбора реализации загрузчика.
  */
 @SpringBootTest
+@TestPropertySource(properties = {"telegram.bot.enabled=false"})
 class MediaDownloaderConfigTest {
 
     @Autowired
@@ -25,7 +26,7 @@ class MediaDownloaderConfigTest {
     }
 
     @SpringBootTest
-    @TestPropertySource(properties = {"downloader.ytdlp.mode=local"})
+    @TestPropertySource(properties = {"downloader.ytdlp.mode=local", "telegram.bot.enabled=false"})
     static class LocalModeTest {
 
         @Autowired
@@ -39,7 +40,7 @@ class MediaDownloaderConfigTest {
     }
 
     @SpringBootTest
-    @TestPropertySource(properties = {"downloader.ytdlp.mode=http"})
+    @TestPropertySource(properties = {"downloader.ytdlp.mode=http", "telegram.bot.enabled=false"})
     static class HttpModeTest {
 
         @Autowired

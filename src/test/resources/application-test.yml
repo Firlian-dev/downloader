@@ -1,0 +1,23 @@
+spring:
+  application:
+    name: downloader
+
+telegram:
+  bot:
+    enabled: false
+    token: test-token
+    username: test_bot
+
+downloader:
+  ytdlp:
+    bin: /usr/local/bin/yt-dlp
+    mode: local
+    service-url: http://localhost:8090
+  download-dir: /tmp/downloads
+  cache-ttl-hours: 24
+  size-limit-mb: 50
+
+logging:
+  level:
+    top.firlian.downloader: DEBUG
+    org.telegram.telegrambots: INFO
