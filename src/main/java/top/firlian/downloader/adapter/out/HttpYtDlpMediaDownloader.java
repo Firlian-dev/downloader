@@ -37,7 +37,7 @@ public class HttpYtDlpMediaDownloader implements MediaDownloader {
     @Value("${downloader.ytdlp.service-url:http://localhost:8090}")
     private String serviceUrl;
 
-    @Value("${downloader.download-dir:/tmp/downloads}")
+    @Value("${downloader.download-dir:./downloads}")
     private String downloadDir;
 
     private WebClient getWebClient() {

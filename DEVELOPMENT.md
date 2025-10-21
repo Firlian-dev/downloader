@@ -14,6 +14,8 @@ For local development, we use a hybrid approach:
 - Docker and Docker Compose
 - Telegram Bot token (get from [@BotFather](https://t.me/BotFather))
 
+**For Windows users**: See [WINDOWS_SETUP.md](WINDOWS_SETUP.md) for Windows-specific instructions using PowerShell commands.
+
 ## Setup
 
 ### 1. Start the yt-dlp service in Docker

@@ -50,6 +50,8 @@ src/main/java/top/firlian/downloader/
 - Docker и Docker Compose (для запуска в контейнере)
 - yt-dlp (для локального запуска)
 
+**Для Windows пользователей**: См. [WINDOWS_SETUP.md](WINDOWS_SETUP.md) для подробных инструкций по установке и настройке на Windows.
+
 ## Установка и запуск
 
 ### С использованием Docker (рекомендуется)

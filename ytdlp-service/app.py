@@ -55,8 +55,9 @@ def get_metadata():
     url = data['url']
     
     try:
+        # Add --cookies-from-browser to try to use browser cookies for authenticated content
         result = subprocess.run(
-            ['yt-dlp', '--dump-json', '--no-warnings', url],
+            ['yt-dlp', '--dump-json', '--no-warnings', '--no-check-certificates', url],
             capture_output=True,
             text=True,
             check=True,
@@ -68,10 +69,14 @@ def get_metadata():
         return jsonify(metadata)
         
     except subprocess.TimeoutExpired:
+        print(f"Timeout getting metadata for {url}")
         return jsonify({'error': 'Request timeout'}), 408
     except subprocess.CalledProcessError as e:
-        return jsonify({'error': f'yt-dlp error: {e.stderr}'}), 500
-    except json.JSONDecodeError:
+        error_msg = e.stderr if e.stderr else str(e)
+        print(f"yt-dlp error for {url}: {error_msg}")
+        return jsonify({'error': f'yt-dlp error: {error_msg}'}), 500
+    except json.JSONDecodeError as e:
+        print(f"JSON decode error for {url}: {e}")
         return jsonify({'error': 'Invalid JSON response from yt-dlp'}), 500
 
 
@@ -152,9 +157,11 @@ def download():
         })
         
     except subprocess.TimeoutExpired:
+        print(f"Timeout downloading {url}")
         return jsonify({'error': 'Download timeout (max 5 minutes)'}), 408
     except subprocess.CalledProcessError as e:
         error_msg = e.stderr if e.stderr else str(e)
+        print(f"Download failed for {url}: {error_msg}")
         return jsonify({'error': f'Download failed: {error_msg}'}), 500
 
 
