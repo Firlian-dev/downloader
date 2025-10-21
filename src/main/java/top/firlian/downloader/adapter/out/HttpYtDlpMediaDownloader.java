@@ -23,8 +23,8 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * HTTP client implementation for yt-dlp service.
- * Communicates with a containerized yt-dlp service via REST API.
+ * Реализация HTTP клиента для сервиса yt-dlp.
+ * Взаимодействует с контейнеризованным сервисом yt-dlp через REST API.
  */
 @Slf4j
 @Component("httpYtDlpMediaDownloader")
@@ -55,14 +55,14 @@ public class HttpYtDlpMediaDownloader implements MediaDownloader {
                 .flatMap(metadata -> {
                     try {
                         if (metadata.has("entries") && metadata.get("entries").isArray()) {
-                            // Handle multiple items (playlist/carousel)
+                            // Обработка нескольких элементов (плейлист/карусель)
                             return handleMultipleItems(url, metadata);
                         } else {
-                            // Download single item
+                            // Загрузка одиночного элемента
                             return downloadSingleItem(url, metadata, 0);
                         }
                     } catch (Exception e) {
-                        log.error("Error processing download for URL: {}", url, e);
+                        log.error("Ошибка обработки загрузки для URL: {}", url, e);
                         if (e.getMessage().contains("Private") || e.getMessage().contains("unavailable")) {
                             return Mono.error(new ContentUnavailableException("Контент недоступен", e));
                         }
@@ -70,7 +70,7 @@ public class HttpYtDlpMediaDownloader implements MediaDownloader {
                     }
                 })
                 .onErrorResume(e -> {
-                    log.error("Error downloading from URL: {}", url, e);
+                    log.error("Ошибка загрузки с URL: {}", url, e);
                     if (e instanceof ContentUnavailableException) {
                         return Mono.error(e);
                     }
@@ -86,13 +86,13 @@ public class HttpYtDlpMediaDownloader implements MediaDownloader {
         return getMetadata(url)
                 .flatMap(metadata -> downloadSingleItem(url, metadata, itemIndex))
                 .onErrorResume(e -> {
-                    log.error("Error downloading item {} from URL: {}", itemIndex, url, e);
+                    log.error("Ошибка загрузки элемента {} с URL: {}", itemIndex, url, e);
                     return Mono.error(new DownloadException("Ошибка загрузки. Попробуйте позже", e));
                 });
     }
 
     /**
-     * Get metadata from yt-dlp service
+     * Получает метаданные из сервиса yt-dlp
      */
     private Mono<JsonNode> getMetadata(String url) {
         Map<String, String> request = new HashMap<>();
@@ -109,24 +109,24 @@ public class HttpYtDlpMediaDownloader implements MediaDownloader {
                     try {
                         return Mono.just(objectMapper.readTree(response));
                     } catch (Exception e) {
-                        log.error("Error parsing metadata JSON", e);
+                        log.error("Ошибка парсинга JSON метаданных", e);
                         return Mono.error(new DownloadException("Не удалось извлечь метаданные"));
                     }
                 })
                 .onErrorResume(e -> {
-                    log.error("Error getting metadata for URL: {}", url, e);
+                    log.error("Ошибка получения метаданных для URL: {}", url, e);
                     return Mono.error(new DownloadException("Не удалось извлечь метаданные", e));
                 });
     }
 
     /**
-     * Handle multiple items (playlist/carousel)
+     * Обрабатывает несколько элементов (плейлист/карусель)
      */
     private Mono<MediaContent> handleMultipleItems(String url, JsonNode metadata) {
         List<MediaItem> items = new ArrayList<>();
         JsonNode entries = metadata.get("entries");
 
-        // Create list of all available items
+        // Создаем список всех доступных элементов
         for (int i = 0; i < entries.size(); i++) {
             JsonNode entry = entries.get(i);
             items.add(MediaItem.builder()
@@ -138,7 +138,7 @@ public class HttpYtDlpMediaDownloader implements MediaDownloader {
                     .build());
         }
 
-        // Download first item by default
+        // Загружаем первый элемент по умолчанию
         return downloadSingleItem(url, entries.get(0), 0)
                 .map(firstItem -> MediaContent.builder()
                         .url(url)
@@ -151,7 +151,7 @@ public class HttpYtDlpMediaDownloader implements MediaDownloader {
     }
 
     /**
-     * Download a single item via HTTP service
+     * Загружает одиночный элемент через HTTP сервис
      */
     private Mono<MediaContent> downloadSingleItem(String url, JsonNode metadata, int itemIndex) {
         Map<String, Object> request = new HashMap<>();
@@ -168,13 +168,13 @@ public class HttpYtDlpMediaDownloader implements MediaDownloader {
                 .bodyToMono(DownloadResponse.class)
                 .timeout(Duration.ofMinutes(5))
                 .map(response -> {
-                    // Verify file exists
+                    // Проверяем существование файла
                     File file = new File(response.getFilePath());
                     if (!file.exists()) {
                         throw new DownloadException("Файл не найден после загрузки: " + response.getFilePath());
                     }
 
-                    log.info("File successfully downloaded via HTTP service: {}, size: {} bytes",
+                    log.info("Файл успешно загружен через HTTP сервис: {}, размер: {} байт",
                             response.getFilePath(), response.getSizeBytes());
 
                     return MediaContent.builder()
@@ -187,24 +187,24 @@ public class HttpYtDlpMediaDownloader implements MediaDownloader {
                             .build();
                 })
                 .onErrorResume(e -> {
-                    log.error("Error during download", e);
+                    log.error("Ошибка во время загрузки", e);
                     return Mono.error(new DownloadException("Загрузка не удалась", e));
                 });
     }
 
     /**
-     * Determine media type from metadata
+     * Определяет тип медиа на основе метаданных
      */
     private MediaType determineMediaType(JsonNode metadata) {
-        // Check for video codec
+        // Проверяем наличие видео кодека
         if (metadata.has("vcodec") && !metadata.get("vcodec").asText().equals("none")) {
             return MediaType.VIDEO;
         }
-        // Check for audio codec
+        // Проверяем наличие аудио кодека
         if (metadata.has("acodec") && !metadata.get("acodec").asText().equals("none")) {
             return MediaType.AUDIO;
         }
-        // Determine by file extension
+        // Определяем по расширению файла
         if (metadata.has("ext")) {
             String ext = metadata.get("ext").asText().toLowerCase();
             if (ext.matches("mp4|webm|mkv|avi|mov")) {
@@ -221,7 +221,7 @@ public class HttpYtDlpMediaDownloader implements MediaDownloader {
     }
 
     /**
-     * DTO for download response from yt-dlp service
+     * DTO для ответа загрузки от сервиса yt-dlp
      */
     private static class DownloadResponse {
         private String filePath;

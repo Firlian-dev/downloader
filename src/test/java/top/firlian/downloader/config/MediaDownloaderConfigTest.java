@@ -11,7 +11,7 @@ import top.firlian.downloader.domain.port.MediaDownloader;
 import static org.junit.jupiter.api.Assertions.*;
 
 /**
- * Tests for MediaDownloaderConfig to verify correct selection of downloader implementation.
+ * Тесты для MediaDownloaderConfig для проверки корректного выбора реализации загрузчика.
  */
 @SpringBootTest
 class MediaDownloaderConfigTest {

@@ -10,8 +10,8 @@ import top.firlian.downloader.adapter.out.YtDlpMediaDownloader;
 import top.firlian.downloader.domain.port.MediaDownloader;
 
 /**
- * Configuration class for selecting the appropriate MediaDownloader implementation
- * based on the ytdlp.mode setting.
+ * Класс конфигурации для выбора подходящей реализации MediaDownloader
+ * на основе настройки ytdlp.mode.
  */
 @Slf4j
 @Configuration
@@ -21,11 +21,11 @@ public class MediaDownloaderConfig {
     private String ytdlpMode;
 
     /**
-     * Provides the primary MediaDownloader bean based on configuration.
+     * Предоставляет основной MediaDownloader bean на основе конфигурации.
      * 
-     * @param localDownloader Local binary implementation
-     * @param httpDownloader HTTP service implementation
-     * @return The selected MediaDownloader implementation
+     * @param localDownloader Реализация с локальным бинарным файлом
+     * @param httpDownloader Реализация HTTP сервиса
+     * @return Выбранная реализация MediaDownloader
      */
     @Bean
     @Primary
@@ -34,10 +34,10 @@ public class MediaDownloaderConfig {
             HttpYtDlpMediaDownloader httpDownloader) {
         
         if ("http".equalsIgnoreCase(ytdlpMode)) {
-            log.info("Using HTTP yt-dlp service mode");
+            log.info("Используется режим HTTP сервиса yt-dlp");
             return httpDownloader;
         } else {
-            log.info("Using local yt-dlp binary mode");
+            log.info("Используется режим локального бинарного файла yt-dlp");
             return localDownloader;
         }
     }
