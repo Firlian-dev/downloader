@@ -9,10 +9,10 @@ telegram:
 
 downloader:
   ytdlp:
-    bin: ${YTDLP_BIN:/usr/local/bin/yt-dlp}
+    bin: ${YTDLP_BIN:yt-dlp}
     mode: ${YTDLP_MODE:local}  # local or http
     service-url: ${YTDLP_SERVICE_URL:http://localhost:8090}  # URL for HTTP mode
-  download-dir: ${DOWNLOAD_DIR:/tmp/downloads}
+  download-dir: ${DOWNLOAD_DIR:./downloads}
   cache-ttl-hours: ${CACHE_TTL_HOURS:24}
   size-limit-mb: ${SIZE_LIMIT_MB:50}
 

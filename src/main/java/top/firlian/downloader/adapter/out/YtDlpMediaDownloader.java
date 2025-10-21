@@ -38,11 +38,11 @@ public class YtDlpMediaDownloader implements MediaDownloader {
     private final ObjectMapper objectMapper = new ObjectMapper();
 
     /** Путь к исполняемому файлу yt-dlp */
-    @Value("${downloader.ytdlp.bin:/usr/local/bin/yt-dlp}")
+    @Value("${downloader.ytdlp.bin:yt-dlp}")
     private String ytdlpBin;
 
     /** Директория для сохранения загруженных файлов */
-    @Value("${downloader.download-dir:/tmp/downloads}")
+    @Value("${downloader.download-dir:./downloads}")
     private String downloadDir;
 
     /**
